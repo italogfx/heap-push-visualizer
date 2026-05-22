@@ -248,31 +248,36 @@ function nodeStyle(state) {
   return { fill:'#1e2334', stroke:'rgba(255,255,255,0.15)', text:'#e8eaf0' };
 }
 
-function renderTree(svgId, heap, states, ghostSet) {
+function renderTree(svgId, heap, states, showNulls) {
   const n = heap.length - 1;
-  const visible = heap.filter((_,i)=>i>0&&heap[i]!==null).length;
   const { coords, svgH, R } = calcCoords(Math.max(n, 1));
   const svg = document.getElementById(svgId);
   svg.setAttribute('viewBox', `0 0 ${SVG_W} ${svgH}`);
   let h = '';
+
   for (let i = 2; i <= n; i++) {
-    if (heap[i] === null) continue;
     const p = Math.floor(i / 2);
-    if (!coords[i] || !coords[p] || heap[p] === null) continue;
+    if (!coords[i] || !coords[p]) continue;
+    // só desenha aresta se pai existe (não é null) ou showNulls
+    if (!showNulls && heap[i] === null) continue;
+    if (!showNulls && heap[p] === null) continue;
     const ci = coords[i], cp = coords[p];
     const dx = ci.x - cp.x, dy = ci.y - cp.y, dist = Math.sqrt(dx*dx+dy*dy);
     if (dist === 0) continue;
-    const op = (ghostSet && ghostSet.has(i)) ? 0.15 : 0.18;
+    const op = heap[i]===null || heap[p]===null ? 0.08 : 0.18;
     h += `<line x1="${(cp.x+dx/dist*R).toFixed(1)}" y1="${(cp.y+dy/dist*R).toFixed(1)}" x2="${(ci.x-dx/dist*R).toFixed(1)}" y2="${(ci.y-dy/dist*R).toFixed(1)}" stroke="rgba(255,255,255,${op})" stroke-width="1"/>`;
   }
+
   for (let i = 1; i <= n; i++) {
     if (!coords[i]) continue;
+    if (!showNulls && heap[i] === null) continue;
     const { x, y } = coords[i];
-    const state = heap[i] === null ? 'ghost' : (states[i] || '');
+    const isNull = heap[i] === null;
+    const state = isNull ? 'ghost' : (states[i] || '');
     const c = nodeStyle(state);
-    const val = heap[i] === null ? '' : heap[i];
-    h += `<circle cx="${x.toFixed(1)}" cy="${y}" r="${R}" fill="${c.fill}" stroke="${c.stroke}" stroke-width="1.5"/>`;
-    if (val !== '') h += `<text x="${x.toFixed(1)}" y="${y}" text-anchor="middle" dominant-baseline="central" font-size="12" font-weight="500" fill="${c.text}" font-family="JetBrains Mono,monospace">${val}</text>`;
+    const val = isNull ? '?' : heap[i];
+    h += `<circle cx="${x.toFixed(1)}" cy="${y}" r="${R}" fill="${c.fill}" stroke="${c.stroke}" stroke-width="1.5" stroke-dasharray="${isNull ? '3 2' : 'none'}"/>`;
+    h += `<text x="${x.toFixed(1)}" y="${y}" text-anchor="middle" dominant-baseline="central" font-size="12" font-weight="500" fill="${c.text}" font-family="JetBrains Mono,monospace">${val}</text>`;
     h += `<text x="${x.toFixed(1)}" y="${y+R+11}" text-anchor="middle" font-size="9" fill="rgba(255,255,255,0.2)" font-family="JetBrains Mono,monospace">${i}</text>`;
   }
   svg.innerHTML = h;
@@ -359,7 +364,7 @@ let popBadSteps=[], popBadSi=0;
 
 function popBadApply(s) {
   setInfo('popbad-info', s.msg);
-  renderTree('svg-popbad', s.heap, s.states);
+  renderTree('svg-popbad', s.heap, s.states, true);
   renderArray('popbad-arr', s.heap, s.states);
   updateNav('popbad-ant','popbad-prox', popBadSi, popBadSteps.length);
   setCounter('popbad-counter', popBadSi, popBadSteps.length);
@@ -412,7 +417,7 @@ function popBadResetar() {
   setInfo('popbad-info','Clique em <b>Executar</b> para ver o problema do Pop por promoção de filhos.');
   document.getElementById('popbad-counter').textContent='';
   updateNav('popbad-ant','popbad-prox',0,0);
-  const h=[null,...BASE]; renderTree('svg-popbad',h,{}); renderArray('popbad-arr',h,{});
+  const h=[null,...BASE]; renderTree('svg-popbad',h,{},true); renderArray('popbad-arr',h,{});
 }
 
 // ─── POP CORRETO ─────────────────────────────────
