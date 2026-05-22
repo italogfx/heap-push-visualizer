@@ -212,7 +212,7 @@
 </div>
 
 <script>
-const BASE = [12, 19, 15, 32, 31, 39, 36, 55, 33, 58, 42, 88, 41, 89, 53];
+const BASE = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11];
 const SVG_W = 600;
 
 function switchTab(id, el) {
@@ -287,10 +287,10 @@ function renderArray(arrId, heap, states) {
   const wrap = document.getElementById(arrId);
   wrap.innerHTML = '';
   for (let i = 1; i < heap.length; i++) {
-    const s = states[i] || '';
+    const s = heap[i] === null ? 'remove' : (states[i] || '');
     const cell = document.createElement('div'); cell.className = 'arr-cell';
     const box = document.createElement('div');
-    box.className = 'arr-box' + (s==='active'?' s-active':s==='swap'?' s-swap':s==='done'?' s-done':s==='remove'?' s-remove':s==='ghost'?' s-ghost':'');
+    box.className = 'arr-box' + (s==='active'?' s-active':s==='swap'?' s-swap':s==='done'?' s-done':s==='remove'?' s-remove':'');
     box.textContent = heap[i] === null ? '—' : heap[i];
     const idx = document.createElement('div'); idx.className = 'arr-idx'; idx.textContent = i;
     cell.appendChild(box); cell.appendChild(idx); wrap.appendChild(cell);
@@ -373,42 +373,50 @@ function popBadProximo() { if(popBadSi<popBadSteps.length-1){popBadSi++;popBadAp
 function popBadAnterior() { if(popBadSi>0){popBadSi--;popBadApply(popBadSteps[popBadSi]);} }
 
 function popBadIniciar() {
+  // Pop problemático: promove filhos recursivamente, deixa buraco no array
+  // O array NÃO encolhe — a posição do buraco fica null no meio
   const h = [null,...BASE]; popBadSteps=[];
 
-  // Mostra estado inicial, raiz destacada
   let s0={}; s0[1]='active';
-  popBadSteps.push({heap:[...h],states:{...s0},msg:`<b>Pop:</b> removemos o elemento mínimo — a raiz <b>${h[1]}</b>. Agora precisamos preencher a posição 1.`});
+  popBadSteps.push({heap:[...h], states:{...s0},
+    msg:`<b>Pop problemático:</b> removemos a raiz <b>${h[1]}</b>. Vamos promover o menor filho para cima recursivamente.`});
 
-  // Simula promoção recursiva: em cada posição vazia, promove o menor filho
   let pos = 1;
   h[1] = null;
   let sr={}; sr[1]='remove';
-  popBadSteps.push({heap:[...h],states:{...sr},msg:`<b class="warn">⚠ Buraco criado</b> na posição 1. Vamos promover o menor dos filhos para cima.`});
+  popBadSteps.push({heap:[...h], states:{...sr},
+    msg:`<b>⚠ Buraco na posição 1.</b> Agora promovemos o menor filho para cima — mas isso deixa um buraco onde o filho estava.`});
 
   while(true) {
     const l = pos*2, r = pos*2+1;
-    const hasL = l < h.length && h[l] !== null && h[l] !== undefined;
-    const hasR = r < h.length && h[r] !== null && h[r] !== undefined;
+    const hasL = l < h.length && h[l] !== null;
+    const hasR = r < h.length && h[r] !== null;
     if (!hasL && !hasR) break;
 
     let menor;
-    if (hasL && hasR) menor = h[l] < h[r] ? l : r;
+    if (hasL && hasR) menor = h[l] <= h[r] ? l : r;
     else if (hasL) menor = l;
     else menor = r;
 
     let sc={}; sc[pos]='remove'; sc[menor]='swap';
-    popBadSteps.push({heap:[...h],states:{...sc},msg:`<b>Promoção:</b> menor filho é <b>${h[menor]}</b> (posição ${menor}) → sobe para posição ${pos}.`});
+    popBadSteps.push({heap:[...h], states:{...sc},
+      msg:`<b>Promoção:</b> menor filho é <b>${h[menor]}</b> (pos. ${menor}) → sobe para preencher o buraco na pos. ${pos}.`});
 
     h[pos] = h[menor];
     h[menor] = null;
 
     let sa={}; sa[pos]='swap'; sa[menor]='remove';
-    popBadSteps.push({heap:[...h],states:{...sa},msg:`<b class="warn">⚠ Buraco agora em ${menor}.</b> A árvore deixou de ser completa — há um "buraco" no meio do último nível.`});
+    const nivelBuraco = Math.floor(Math.log2(menor));
+    popBadSteps.push({heap:[...h], states:{...sa},
+      msg:`<b>⚠ Buraco agora na pos. ${menor}</b> (nível ${nivelBuraco}). O array ainda tem ${h.length-1} posições — mas a pos. ${menor} está vazia no meio.`});
     pos = menor;
   }
 
+  // Estado final — mostra claramente que o array tem null no meio
   let sf={}; sf[pos]='remove';
-  popBadSteps.push({heap:[...h],states:{...sf},msg:`<b class="warn">⚠ Problema:</b> a árvore resultante <b>não é completa</b> — o buraco ficou no meio do penúltimo nível, quebrando o mapeamento em array.`});
+  const hFinal = h.map((v,i) => i===0 ? null : v);
+  popBadSteps.push({heap:[...hFinal], states:{...sf},
+    msg:`<b>⚠ Resultado problemático:</b> array ainda tem ${hFinal.length-1} posições mas a pos. ${pos} está <b>vazia no meio</b> — a árvore <b>não é mais completa</b> e o mapeamento em array quebra.`});
 
   popBadSi=0; popBadApply(popBadSteps[0]);
 }
