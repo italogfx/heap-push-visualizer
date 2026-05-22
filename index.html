@@ -3,221 +3,224 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Heap Binário — Operação Push</title>
+<title>Heap Binário — Push e Pop</title>
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
 <style>
   :root {
-    --bg: #0f1117;
-    --surface: #181c27;
-    --surface2: #1e2334;
-    --border: rgba(255,255,255,0.08);
-    --border2: rgba(255,255,255,0.14);
-    --text: #e8eaf0;
-    --text2: #8b90a0;
-    --text3: #555b70;
-    --purple-fill: #2d2a5e;
-    --purple-stroke: #7f77dd;
-    --purple-text: #c4c0f8;
-    --amber-fill: #2e2010;
-    --amber-stroke: #ba7517;
-    --amber-text: #f5c97a;
-    --teal-fill: #0d2920;
-    --teal-stroke: #1d9e75;
-    --teal-text: #6de0b5;
-    --neutral-fill: #1e2334;
-    --neutral-stroke: rgba(255,255,255,0.15);
-    --neutral-text: #e8eaf0;
-    --accent: #7f77dd;
-    --mono: 'JetBrains Mono', monospace;
-    --sans: 'DM Sans', sans-serif;
+    --bg:#0f1117;--surface:#181c27;--surface2:#1e2334;
+    --border:rgba(255,255,255,0.08);--border2:rgba(255,255,255,0.14);
+    --text:#e8eaf0;--text2:#8b90a0;--text3:#555b70;
+    --pf:#2d2a5e;--ps:#7f77dd;--pt:#c4c0f8;
+    --af:#2e2010;--as:#ba7517;--at:#f5c97a;
+    --tf:#0d2920;--ts:#1d9e75;--tt:#6de0b5;
+    --rf:#3a0e0e;--rs:#e24b4a;--rt:#f09595;
+    --accent:#7f77dd;
   }
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: var(--sans); background: var(--bg); color: var(--text); min-height: 100vh; }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;}
 
-  header {
-    border-bottom: 1px solid var(--border);
-    padding: 24px 40px 20px;
-    display: flex;
-    align-items: flex-end;
-    justify-content: space-between;
-    gap: 24px;
-  }
-  .apresentador-badge {
-    font-size: 11px; font-weight: 500; letter-spacing: 0.1em;
-    text-transform: uppercase; color: var(--accent);
-    margin-bottom: 6px; font-family: var(--mono);
-  }
-  header h1 { font-size: 22px; font-weight: 400; letter-spacing: -0.02em; }
-  header h1 span { color: var(--accent); font-weight: 500; }
-  .header-right { display: flex; gap: 24px; }
-  .stat { text-align: right; }
-  .stat-val { font-family: var(--mono); font-size: 20px; font-weight: 500; }
-  .stat-label { font-size: 11px; color: var(--text2); margin-top: 2px; }
+  header{border-bottom:1px solid var(--border);padding:20px 36px 16px;display:flex;align-items:flex-end;justify-content:space-between;gap:20px;}
+  header h1{font-size:20px;font-weight:400;letter-spacing:-0.02em;}
+  header h1 span{color:var(--accent);font-weight:500;}
+  .hright{display:flex;gap:20px;}
+  .stat{text-align:right;}
+  .stat-val{font-family:'JetBrains Mono',monospace;font-size:18px;font-weight:500;}
+  .stat-label{font-size:11px;color:var(--text2);margin-top:2px;}
 
-  main {
-    display: grid;
-    grid-template-columns: 1fr 320px;
-    grid-template-rows: 1fr auto;
-    height: calc(100vh - 81px);
-    min-height: 580px;
-  }
+  .tabs{display:flex;border-bottom:1px solid var(--border);}
+  .tab{padding:10px 24px;font-size:13px;font-weight:500;color:var(--text2);cursor:pointer;border-bottom:2px solid transparent;transition:color .15s,border-color .15s;}
+  .tab:hover{color:var(--text);}
+  .tab.active{color:var(--accent);border-bottom-color:var(--accent);}
 
-  .panel { border-right: 1px solid var(--border); border-bottom: 1px solid var(--border); display: flex; flex-direction: column; }
-  .panel-header {
-    display: flex; align-items: center; justify-content: space-between;
-    padding: 12px 20px; border-bottom: 1px solid var(--border); flex-shrink: 0;
-  }
-  .panel-title { font-size: 11px; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text2); font-family: var(--mono); }
-  .panel-badge { font-family: var(--mono); font-size: 11px; padding: 3px 8px; border-radius: 4px; background: var(--surface2); color: var(--text3); border: 1px solid var(--border); }
+  .tab-content{display:none;}
+  .tab-content.active{display:grid;grid-template-columns:1fr 300px;grid-template-rows:1fr auto;height:calc(100vh - 120px);min-height:520px;}
 
-  .panel-tree  { grid-column: 1; grid-row: 1; }
-  .panel-controls { grid-column: 2; grid-row: 1 / 3; border-right: none; border-bottom: none; overflow-y: auto; }
-  .panel-array { grid-column: 1; grid-row: 2; }
+  .panel{border-right:1px solid var(--border);border-bottom:1px solid var(--border);display:flex;flex-direction:column;}
+  .panel-ctrl{grid-column:2;grid-row:1/3;border-right:none;border-bottom:none;overflow-y:auto;display:flex;flex-direction:column;}
+  .panel-arr{grid-column:1;grid-row:2;}
+  .panel-header{display:flex;align-items:center;justify-content:space-between;padding:10px 18px;border-bottom:1px solid var(--border);flex-shrink:0;}
+  .panel-title{font-size:11px;font-weight:500;letter-spacing:.08em;text-transform:uppercase;color:var(--text2);font-family:'JetBrains Mono',monospace;}
+  .panel-badge{font-family:'JetBrains Mono',monospace;font-size:11px;padding:3px 8px;border-radius:4px;background:var(--surface2);color:var(--text3);border:1px solid var(--border);}
 
-  .tree-area { flex: 1; padding: 12px 16px; display: flex; align-items: center; justify-content: center; overflow: hidden; }
-  #svg-tree { display: block; width: 100%; height: 100%; }
+  .tree-area{flex:1;padding:10px 14px;display:flex;align-items:center;justify-content:center;overflow:hidden;}
+  svg.heap-svg{display:block;width:100%;height:100%;}
+  .array-area{padding:10px 18px;flex-shrink:0;}
+  .arr-scroll{display:flex;gap:3px;overflow-x:auto;padding-bottom:4px;}
+  .arr-scroll::-webkit-scrollbar{height:4px;}
+  .arr-scroll::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px;}
+  .arr-cell{display:flex;flex-direction:column;align-items:center;gap:2px;flex-shrink:0;}
+  .arr-box{width:38px;height:38px;border-radius:5px;border:1px solid rgba(255,255,255,0.15);background:var(--surface2);display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:500;color:var(--text);transition:background .2s,border-color .2s,color .2s;}
+  .arr-box.s-active{background:var(--pf);border-color:var(--ps);color:var(--pt);}
+  .arr-box.s-swap{background:var(--af);border-color:var(--as);color:var(--at);}
+  .arr-box.s-done{background:var(--tf);border-color:var(--ts);color:var(--tt);}
+  .arr-box.s-remove{background:var(--rf);border-color:var(--rs);color:var(--rt);}
+  .arr-box.s-ghost{opacity:.25;}
+  .arr-idx{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--text3);}
 
-  .array-area { padding: 12px 20px; flex-shrink: 0; }
-  .array-scroll { display: flex; gap: 4px; overflow-x: auto; padding-bottom: 4px; }
-  .array-scroll::-webkit-scrollbar { height: 4px; }
-  .array-scroll::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
-  .arr-cell { display: flex; flex-direction: column; align-items: center; gap: 3px; flex-shrink: 0; }
-  .arr-box {
-    width: 42px; height: 42px; border-radius: 6px;
-    border: 1px solid var(--neutral-stroke); background: var(--neutral-fill);
-    display: flex; align-items: center; justify-content: center;
-    font-family: var(--mono); font-size: 14px; font-weight: 500; color: var(--neutral-text);
-    transition: background 0.2s, border-color 0.2s, color 0.2s;
-  }
-  .arr-box.s-active { background: var(--purple-fill); border-color: var(--purple-stroke); color: var(--purple-text); }
-  .arr-box.s-swap   { background: var(--amber-fill);  border-color: var(--amber-stroke);  color: var(--amber-text); }
-  .arr-box.s-done   { background: var(--teal-fill);   border-color: var(--teal-stroke);   color: var(--teal-text); }
-  .arr-idx { font-family: var(--mono); font-size: 10px; color: var(--text3); }
-
-  .controls-area { padding: 18px; display: flex; flex-direction: column; gap: 14px; }
-  .input-label { font-size: 15px; font-weight: 500; color: var(--text); margin-bottom: 2px; }
-  .input-row { display: flex; gap: 8px; }
-  input[type=number] {
-    flex: 1; background: var(--surface2); border: 1px solid var(--border2);
-    border-radius: 6px; color: var(--text); font-family: var(--mono);
-    font-size: 18px; font-weight: 500; padding: 10px 14px; outline: none;
-    -moz-appearance: textfield;
-  }
-  input[type=number]:focus { border-color: var(--accent); }
-  input[type=number]::-webkit-inner-spin-button,
-  input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; }
-  .btn-insert {
-    background: var(--accent); color: #fff; border: none; border-radius: 6px;
-    font-family: var(--sans); font-size: 14px; font-weight: 500;
-    padding: 10px 16px; cursor: pointer; white-space: nowrap;
-  }
-  .btn-insert:hover { opacity: 0.85; }
-  .nav-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-  .btn-nav {
-    background: var(--surface2); color: var(--text2); border: 1px solid var(--border2);
-    border-radius: 6px; font-family: var(--sans); font-size: 14px;
-    padding: 10px; cursor: pointer; transition: background 0.15s, color 0.15s;
-  }
-  .btn-nav:hover:not(:disabled) { background: var(--surface); color: var(--text); }
-  .btn-nav:disabled { opacity: 0.3; cursor: default; }
-  .btn-reset {
-    background: transparent; color: var(--text3); border: 1px solid var(--border);
-    border-radius: 6px; font-family: var(--sans); font-size: 13px;
-    padding: 8px; cursor: pointer; width: 100%;
-  }
-  .btn-reset:hover { color: var(--text2); }
-  .info-card {
-    background: var(--surface2); border: 1px solid var(--border);
-    border-radius: 8px; padding: 16px;
-    font-size: 17px; color: var(--text2); line-height: 1.7; min-height: 100px;
-  }
-  .info-card b { color: var(--text); font-weight: 500; }
-  .info-card .ok { color: var(--teal-text); font-weight: 500; }
-  .step-counter { font-family: var(--mono); font-size: 11px; color: var(--text3); text-align: center; }
-  .legend { display: flex; flex-direction: column; gap: 8px; padding-top: 10px; border-top: 1px solid var(--border); }
-  .leg-item { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--text2); }
-  .leg-dot { width: 12px; height: 12px; border-radius: 3px; flex-shrink: 0; }
-  .formula-box { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 12px 14px; }
-  .formula-title { font-family: var(--mono); font-size: 10px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text3); margin-bottom: 8px; }
-  .formula-row { display: flex; justify-content: space-between; align-items: center; padding: 5px 0; border-bottom: 1px solid var(--border); font-size: 13px; }
-  .formula-row:last-child { border-bottom: none; }
-  .formula-row span:first-child { color: var(--text2); }
-  .formula-row span:last-child { font-family: var(--mono); color: var(--purple-text); }
+  .ctrl-area{padding:16px;display:flex;flex-direction:column;gap:12px;flex:1;}
+  .inp-label{font-size:14px;font-weight:500;color:var(--text);}
+  .inp-row{display:flex;gap:8px;}
+  input[type=number]{flex:1;background:var(--surface2);border:1px solid var(--border2);border-radius:6px;color:var(--text);font-family:'JetBrains Mono',monospace;font-size:17px;font-weight:500;padding:9px 12px;outline:none;-moz-appearance:textfield;}
+  input[type=number]:focus{border-color:var(--accent);}
+  input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-spin-button{-webkit-appearance:none;}
+  .btn-main{background:var(--accent);color:#fff;border:none;border-radius:6px;font-size:13px;font-weight:500;padding:9px 14px;cursor:pointer;white-space:nowrap;}
+  .btn-main:hover{opacity:.85;}
+  .btn-main.red{background:#a32d2d;}
+  .btn-main.teal{background:#0f6e56;}
+  .nav-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+  .btn-nav{background:var(--surface2);color:var(--text2);border:1px solid var(--border2);border-radius:6px;font-size:13px;padding:9px;cursor:pointer;}
+  .btn-nav:hover:not(:disabled){background:var(--surface);color:var(--text);}
+  .btn-nav:disabled{opacity:.3;cursor:default;}
+  .btn-reset{background:transparent;color:var(--text3);border:1px solid var(--border);border-radius:6px;font-size:12px;padding:7px;cursor:pointer;width:100%;}
+  .btn-reset:hover{color:var(--text2);}
+  .info-card{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:14px;font-size:16px;color:var(--text2);line-height:1.7;min-height:90px;}
+  .info-card b{color:var(--text);font-weight:500;}
+  .info-card .ok{color:var(--tt);font-weight:500;}
+  .info-card .warn{color:var(--at);font-weight:500;}
+  .step-counter{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text3);text-align:center;}
+  .legend{display:flex;flex-direction:column;gap:7px;padding-top:10px;border-top:1px solid var(--border);}
+  .leg-item{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--text2);}
+  .leg-dot{width:11px;height:11px;border-radius:3px;flex-shrink:0;}
+  .formula-box{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:11px 13px;}
+  .formula-title{font-family:'JetBrains Mono',monospace;font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--text3);margin-bottom:7px;}
+  .formula-row{display:flex;justify-content:space-between;align-items:center;padding:4px 0;border-bottom:1px solid var(--border);font-size:12px;}
+  .formula-row:last-child{border-bottom:none;}
+  .formula-row span:first-child{color:var(--text2);}
+  .formula-row span:last-child{font-family:'JetBrains Mono',monospace;color:var(--pt);}
 </style>
 </head>
 <body>
 
 <header>
   <div>
-    <h1>Heap binário — operação <span>Push</span></h1>
+    <h1>Heap binário — <span>Push</span> e <span>Pop</span></h1>
   </div>
-  <div class="header-right">
+  <div class="hright">
     <div class="stat"><div class="stat-val" id="stat-n">17</div><div class="stat-label">elementos</div></div>
     <div class="stat"><div class="stat-val" id="stat-h">4</div><div class="stat-label">altura</div></div>
     <div class="stat"><div class="stat-val">O(log n)</div><div class="stat-label">complexidade</div></div>
   </div>
 </header>
 
-<main>
-  <div class="panel panel-tree">
-    <div class="panel-header">
-      <span class="panel-title">Árvore binária completa</span>
-      <span class="panel-badge">heap de mínimo</span>
-    </div>
-    <div class="tree-area">
-      <svg id="svg-tree" viewBox="0 0 600 300" preserveAspectRatio="xMidYMid meet"></svg>
-    </div>
-  </div>
+<div class="tabs">
+  <div class="tab active" onclick="switchTab('push',this)">Push (inserção)</div>
+  <div class="tab" onclick="switchTab('pop-bad',this)">Pop problemático</div>
+  <div class="tab" onclick="switchTab('pop-ok',this)">Pop correto</div>
+</div>
 
-  <div class="panel panel-controls">
-    <div class="panel-header"><span class="panel-title">Controles</span></div>
-    <div class="controls-area">
+<!-- TAB PUSH -->
+<div class="tab-content active" id="tab-push">
+  <div class="panel" style="grid-column:1;grid-row:1;">
+    <div class="panel-header"><span class="panel-title">Árvore binária completa</span><span class="panel-badge">heap de mínimo</span></div>
+    <div class="tree-area"><svg class="heap-svg" id="svg-push" viewBox="0 0 600 300" preserveAspectRatio="xMidYMid meet"></svg></div>
+  </div>
+  <div class="panel panel-ctrl">
+    <div class="panel-header"><span class="panel-title">Controles — Push</span></div>
+    <div class="ctrl-area">
       <div>
-        <div class="input-label">Valor a inserir</div>
-        <div class="input-row">
-          <input type="number" id="val" value="10" min="1" max="99">
-          <button class="btn-insert" onclick="iniciar()">Inserir →</button>
+        <div class="inp-label">Valor a inserir</div>
+        <div class="inp-row">
+          <input type="number" id="push-val" value="10" min="1" max="99">
+          <button class="btn-main" onclick="pushIniciar()">Inserir →</button>
         </div>
       </div>
       <div class="nav-row">
-        <button class="btn-nav" id="btn-ant" onclick="anterior()" disabled>← Anterior</button>
-        <button class="btn-nav" id="btn-prox" onclick="proximo()" disabled>Próximo →</button>
+        <button class="btn-nav" id="push-ant" onclick="pushAnterior()" disabled>← Anterior</button>
+        <button class="btn-nav" id="push-prox" onclick="pushProximo()" disabled>Próximo →</button>
       </div>
-      <div class="info-card" id="info">Digite um valor e clique em <b>Inserir</b> para ver o Push passo a passo.</div>
-      <div class="step-counter" id="step-counter"></div>
-      <button class="btn-reset" onclick="resetar()">↺ Resetar heap</button>
+      <div class="info-card" id="push-info">Digite um valor e clique em <b>Inserir</b> para ver o Push passo a passo.</div>
+      <div class="step-counter" id="push-counter"></div>
+      <button class="btn-reset" onclick="pushResetar()">↺ Resetar heap</button>
       <div class="legend">
-        <div class="leg-item"><div class="leg-dot" style="background:#2d2a5e;border:1px solid #7f77dd"></div>Elemento inserido / posição atual</div>
-        <div class="leg-item"><div class="leg-dot" style="background:#2e2010;border:1px solid #ba7517"></div>Sendo trocado (sobe)</div>
-        <div class="leg-item"><div class="leg-dot" style="background:#0d2920;border:1px solid #1d9e75"></div>Posição final — heap restaurado</div>
+        <div class="leg-item"><div class="leg-dot" style="background:#2d2a5e;border:1px solid #7f77dd"></div>Inserido / posição atual</div>
+        <div class="leg-item"><div class="leg-dot" style="background:#2e2010;border:1px solid #ba7517"></div>Sendo trocado</div>
+        <div class="leg-item"><div class="leg-dot" style="background:#0d2920;border:1px solid #1d9e75"></div>Posição final</div>
       </div>
       <div class="formula-box">
         <div class="formula-title">Navegação no array</div>
-        <div class="formula-row"><span>Filho esquerdo de i</span><span>2i</span></div>
-        <div class="formula-row"><span>Filho direito de i</span><span>2i + 1</span></div>
+        <div class="formula-row"><span>Filho esq. de i</span><span>2i</span></div>
+        <div class="formula-row"><span>Filho dir. de i</span><span>2i + 1</span></div>
         <div class="formula-row"><span>Pai de i</span><span>⌊i / 2⌋</span></div>
       </div>
     </div>
   </div>
+  <div class="panel panel-arr">
+    <div class="panel-header"><span class="panel-title">Array</span><span class="panel-badge">índice base 1</span></div>
+    <div class="array-area"><div class="arr-scroll" id="push-arr"></div></div>
+  </div>
+</div>
 
-  <div class="panel panel-array">
-    <div class="panel-header">
-      <span class="panel-title">Representação em array</span>
-      <span class="panel-badge">índice base 1</span>
-    </div>
-    <div class="array-area">
-      <div class="array-scroll" id="arr-wrap"></div>
+<!-- TAB POP PROBLEMÁTICO -->
+<div class="tab-content" id="tab-pop-bad">
+  <div class="panel" style="grid-column:1;grid-row:1;">
+    <div class="panel-header"><span class="panel-title">Árvore — Pop problemático</span><span class="panel-badge" style="color:#f09595;border-color:#a32d2d;">quebra completude</span></div>
+    <div class="tree-area"><svg class="heap-svg" id="svg-popbad" viewBox="0 0 600 300" preserveAspectRatio="xMidYMid meet"></svg></div>
+  </div>
+  <div class="panel panel-ctrl">
+    <div class="panel-header"><span class="panel-title">Controles — Pop problemático</span></div>
+    <div class="ctrl-area">
+      <button class="btn-main red" onclick="popBadIniciar()">Executar Pop problemático</button>
+      <div class="nav-row">
+        <button class="btn-nav" id="popbad-ant" onclick="popBadAnterior()" disabled>← Anterior</button>
+        <button class="btn-nav" id="popbad-prox" onclick="popBadProximo()" disabled>Próximo →</button>
+      </div>
+      <div class="info-card" id="popbad-info">Clique em <b>Executar</b> para ver o problema do Pop por promoção de filhos.</div>
+      <div class="step-counter" id="popbad-counter"></div>
+      <button class="btn-reset" onclick="popBadResetar()">↺ Resetar heap</button>
+      <div class="legend">
+        <div class="leg-item"><div class="leg-dot" style="background:#2d2a5e;border:1px solid #7f77dd"></div>Elemento removido / em análise</div>
+        <div class="leg-item"><div class="leg-dot" style="background:#2e2010;border:1px solid #ba7517"></div>Promovido para cima</div>
+        <div class="leg-item"><div class="leg-dot" style="background:#3a0e0e;border:1px solid #e24b4a"></div>Buraco (posição vazia)</div>
+      </div>
     </div>
   </div>
-</main>
+  <div class="panel panel-arr">
+    <div class="panel-header"><span class="panel-title">Array</span><span class="panel-badge">índice base 1</span></div>
+    <div class="array-area"><div class="arr-scroll" id="popbad-arr"></div></div>
+  </div>
+</div>
+
+<!-- TAB POP CORRETO -->
+<div class="tab-content" id="tab-pop-ok">
+  <div class="panel" style="grid-column:1;grid-row:1;">
+    <div class="panel-header"><span class="panel-title">Árvore — Pop correto</span><span class="panel-badge" style="color:#6de0b5;border-color:#0f6e56;">preserva completude</span></div>
+    <div class="tree-area"><svg class="heap-svg" id="svg-popok" viewBox="0 0 600 300" preserveAspectRatio="xMidYMid meet"></svg></div>
+  </div>
+  <div class="panel panel-ctrl">
+    <div class="panel-header"><span class="panel-title">Controles — Pop correto</span></div>
+    <div class="ctrl-area">
+      <button class="btn-main teal" onclick="popOkIniciar()">Executar Pop correto</button>
+      <div class="nav-row">
+        <button class="btn-nav" id="popok-ant" onclick="popOkAnterior()" disabled>← Anterior</button>
+        <button class="btn-nav" id="popok-prox" onclick="popOkProximo()" disabled>Próximo →</button>
+      </div>
+      <div class="info-card" id="popok-info">Clique em <b>Executar</b> para ver o Pop correto com folha mais à direita.</div>
+      <div class="step-counter" id="popok-counter"></div>
+      <button class="btn-reset" onclick="popOkResetar()">↺ Resetar heap</button>
+      <div class="legend">
+        <div class="leg-item"><div class="leg-dot" style="background:#2d2a5e;border:1px solid #7f77dd"></div>Elemento em análise / descendo</div>
+        <div class="leg-item"><div class="leg-dot" style="background:#2e2010;border:1px solid #ba7517"></div>Menor filho (candidato à troca)</div>
+        <div class="leg-item"><div class="leg-dot" style="background:#0d2920;border:1px solid #1d9e75"></div>Posição final — heap restaurado</div>
+        <div class="leg-item"><div class="leg-dot" style="background:#3a0e0e;border:1px solid #e24b4a"></div>Removido</div>
+      </div>
+    </div>
+  </div>
+  <div class="panel panel-arr">
+    <div class="panel-header"><span class="panel-title">Array</span><span class="panel-badge">índice base 1</span></div>
+    <div class="array-area"><div class="arr-scroll" id="popok-arr"></div></div>
+  </div>
+</div>
 
 <script>
 const BASE = [12, 17, 25, 33, 36, 55, 88, 19, 31, 58, 15, 41, 42, 89, 32, 39, 53];
-let steps = [], si = 0;
-let liveHeap = [];
-
 const SVG_W = 600;
-const LEVEL_H = 65;
+
+function switchTab(id, el) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('tab-' + id).classList.add('active');
+}
 
 function calcCoords(n) {
   const maxLevel = Math.floor(Math.log2(n));
@@ -227,137 +230,257 @@ function calcCoords(n) {
   const LH = Math.max(R * 2 + 22, 52);
   const coords = [null];
   for (let i = 1; i <= n; i++) {
-    const level = Math.floor(Math.log2(i));
-    const posInLevel = i - Math.pow(2, level);
-    const capAtLevel = Math.pow(2, level);
-    const slotAtLevel = SVG_W / capAtLevel;
-    const x = slotAtLevel * posInLevel + slotAtLevel / 2;
-    const y = R + 8 + level * LH;
-    coords.push({x, y});
+    const lv = Math.floor(Math.log2(i));
+    const pos = i - Math.pow(2, lv);
+    const cap = Math.pow(2, lv);
+    const sl = SVG_W / cap;
+    coords.push({ x: sl * pos + sl / 2, y: R + 8 + lv * LH });
   }
   return { coords, svgH: R + 8 + maxLevel * LH + R + 20, R };
 }
 
 function nodeStyle(state) {
-  if (state === 'active') return {fill:'#2d2a5e', stroke:'#7f77dd', text:'#c4c0f8'};
-  if (state === 'swap')   return {fill:'#2e2010', stroke:'#ba7517', text:'#f5c97a'};
-  if (state === 'done')   return {fill:'#0d2920', stroke:'#1d9e75', text:'#6de0b5'};
-  return {fill:'#1e2334', stroke:'rgba(255,255,255,0.15)', text:'#e8eaf0'};
+  if (state === 'active') return { fill:'#2d2a5e', stroke:'#7f77dd', text:'#c4c0f8' };
+  if (state === 'swap')   return { fill:'#2e2010', stroke:'#ba7517', text:'#f5c97a' };
+  if (state === 'done')   return { fill:'#0d2920', stroke:'#1d9e75', text:'#6de0b5' };
+  if (state === 'remove') return { fill:'#3a0e0e', stroke:'#e24b4a', text:'#f09595' };
+  if (state === 'ghost')  return { fill:'#1a1a1a', stroke:'rgba(255,255,255,0.08)', text:'rgba(255,255,255,0.15)' };
+  return { fill:'#1e2334', stroke:'rgba(255,255,255,0.15)', text:'#e8eaf0' };
 }
 
-function drawTree(heap, states) {
+function renderTree(svgId, heap, states, ghostSet) {
   const n = heap.length - 1;
-  const { coords, svgH, R } = calcCoords(n);
-  const svg = document.getElementById('svg-tree');
+  const visible = heap.filter((_,i)=>i>0&&heap[i]!==null).length;
+  const { coords, svgH, R } = calcCoords(Math.max(n, 1));
+  const svg = document.getElementById(svgId);
   svg.setAttribute('viewBox', `0 0 ${SVG_W} ${svgH}`);
   let h = '';
-
   for (let i = 2; i <= n; i++) {
+    if (heap[i] === null) continue;
     const p = Math.floor(i / 2);
-    const cx = coords[i], cp = coords[p];
-    const dx = cx.x - cp.x, dy = cx.y - cp.y;
-    const dist = Math.sqrt(dx*dx + dy*dy);
-    const x1 = (cp.x + dx/dist*R).toFixed(1), y1 = (cp.y + dy/dist*R).toFixed(1);
-    const x2 = (cx.x - dx/dist*R).toFixed(1), y2 = (cx.y - dy/dist*R).toFixed(1);
-    h += `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="rgba(255,255,255,0.18)" stroke-width="1"/>`;
+    if (!coords[i] || !coords[p] || heap[p] === null) continue;
+    const ci = coords[i], cp = coords[p];
+    const dx = ci.x - cp.x, dy = ci.y - cp.y, dist = Math.sqrt(dx*dx+dy*dy);
+    if (dist === 0) continue;
+    const op = (ghostSet && ghostSet.has(i)) ? 0.15 : 0.18;
+    h += `<line x1="${(cp.x+dx/dist*R).toFixed(1)}" y1="${(cp.y+dy/dist*R).toFixed(1)}" x2="${(ci.x-dx/dist*R).toFixed(1)}" y2="${(ci.y-dy/dist*R).toFixed(1)}" stroke="rgba(255,255,255,${op})" stroke-width="1"/>`;
   }
-
   for (let i = 1; i <= n; i++) {
-    const {x, y} = coords[i];
-    const c = nodeStyle(states[i] || '');
+    if (!coords[i]) continue;
+    const { x, y } = coords[i];
+    const state = heap[i] === null ? 'ghost' : (states[i] || '');
+    const c = nodeStyle(state);
+    const val = heap[i] === null ? '' : heap[i];
     h += `<circle cx="${x.toFixed(1)}" cy="${y}" r="${R}" fill="${c.fill}" stroke="${c.stroke}" stroke-width="1.5"/>`;
-    h += `<text x="${x.toFixed(1)}" y="${y}" text-anchor="middle" dominant-baseline="central" font-size="13" font-weight="500" fill="${c.text}" font-family="JetBrains Mono,monospace">${heap[i]}</text>`;
-    h += `<text x="${x.toFixed(1)}" y="${y+R+11}" text-anchor="middle" font-size="9" fill="rgba(255,255,255,0.22)" font-family="JetBrains Mono,monospace">${i}</text>`;
+    if (val !== '') h += `<text x="${x.toFixed(1)}" y="${y}" text-anchor="middle" dominant-baseline="central" font-size="12" font-weight="500" fill="${c.text}" font-family="JetBrains Mono,monospace">${val}</text>`;
+    h += `<text x="${x.toFixed(1)}" y="${y+R+11}" text-anchor="middle" font-size="9" fill="rgba(255,255,255,0.2)" font-family="JetBrains Mono,monospace">${i}</text>`;
   }
-
   svg.innerHTML = h;
-  document.getElementById('stat-n').textContent = n;
-  document.getElementById('stat-h').textContent = Math.floor(Math.log2(n));
 }
 
-function drawArray(heap, states) {
-  const wrap = document.getElementById('arr-wrap');
+function renderArray(arrId, heap, states) {
+  const wrap = document.getElementById(arrId);
   wrap.innerHTML = '';
   for (let i = 1; i < heap.length; i++) {
     const s = states[i] || '';
-    const cell = document.createElement('div');
-    cell.className = 'arr-cell';
+    const cell = document.createElement('div'); cell.className = 'arr-cell';
     const box = document.createElement('div');
-    box.className = 'arr-box' + (s==='active'?' s-active':s==='swap'?' s-swap':s==='done'?' s-done':'');
-    box.textContent = heap[i];
-    const idx = document.createElement('div');
-    idx.className = 'arr-idx';
-    idx.textContent = i;
-    cell.appendChild(box);
-    cell.appendChild(idx);
-    wrap.appendChild(cell);
+    box.className = 'arr-box' + (s==='active'?' s-active':s==='swap'?' s-swap':s==='done'?' s-done':s==='remove'?' s-remove':s==='ghost'?' s-ghost':'');
+    box.textContent = heap[i] === null ? '—' : heap[i];
+    const idx = document.createElement('div'); idx.className = 'arr-idx'; idx.textContent = i;
+    cell.appendChild(box); cell.appendChild(idx); wrap.appendChild(cell);
   }
 }
 
-function setInfo(msg) { document.getElementById('info').innerHTML = msg; }
-function updateNav() {
-  document.getElementById('btn-ant').disabled = si === 0 || steps.length === 0;
-  document.getElementById('btn-prox').disabled = si >= steps.length - 1 || steps.length === 0;
-  document.getElementById('step-counter').textContent = steps.length > 0 ? `passo ${si+1} de ${steps.length}` : '';
+function setInfo(id, msg) { document.getElementById(id).innerHTML = msg; }
+function updateNav(antId, proxId, si, len) {
+  document.getElementById(antId).disabled = si === 0 || len === 0;
+  document.getElementById(proxId).disabled = si >= len - 1 || len === 0;
 }
-function applyStep(s) { setInfo(s.msg); drawTree(s.heap, s.states); drawArray(s.heap, s.states); updateNav(); }
+function setCounter(id, si, len) {
+  document.getElementById(id).textContent = len > 0 ? `passo ${si+1} de ${len}` : '';
+}
+function updateStats(n) {
+  document.getElementById('stat-n').textContent = n;
+  document.getElementById('stat-h').textContent = n > 0 ? Math.floor(Math.log2(n)) : 0;
+}
 
-function iniciar() {
-  const v = parseInt(document.getElementById('val').value);
-  if (isNaN(v) || v < 1 || v > 99) return;
+// ─── PUSH ───────────────────────────────────────────
+let pushSteps = [], pushSi = 0, pushLive = [];
 
-  const h = [...liveHeap];
-  steps = [];
-  h.push(v);
-  let pos = h.length - 1;
+function pushApply(s) {
+  setInfo('push-info', s.msg);
+  renderTree('svg-push', s.heap, s.states);
+  renderArray('push-arr', s.heap, s.states);
+  updateNav('push-ant','push-prox', pushSi, pushSteps.length);
+  setCounter('push-counter', pushSi, pushSteps.length);
+  updateStats(s.heap.length - 1);
+}
+function pushProximo() { if (pushSi < pushSteps.length-1) { pushSi++; pushApply(pushSteps[pushSi]); } }
+function pushAnterior() { if (pushSi > 0) { pushSi--; pushApply(pushSteps[pushSi]); } }
 
-  liveHeap = [...h];
-
-  let st0 = {}; st0[pos] = 'active';
-  steps.push({ heap: [...h], states: {...st0},
-    msg: `<b>Inserção:</b> valor <b>${v}</b> colocado na posição <b>${pos}</b> (próxima folha, da esquerda para a direita).` });
-
-  while (pos > 1) {
-    const pai = Math.floor(pos / 2);
-    if (h[pos] < h[pai]) {
-      let stCmp = {}; stCmp[pos] = 'active'; stCmp[pai] = 'swap';
-      steps.push({ heap: [...h], states: stCmp,
-        msg: `<b>Comparação:</b> ${h[pos]} &lt; ${h[pai]} (pai, posição ${pai}) → troca necessária. O elemento sobe.` });
-      [h[pos], h[pai]] = [h[pai], h[pos]];
-      liveHeap[pos] = h[pos]; liveHeap[pai] = h[pai];
-      let stAft = {}; stAft[pai] = 'active'; stAft[pos] = 'swap';
-      steps.push({ heap: [...h], states: stAft,
-        msg: `<b>Troca feita:</b> <b>${h[pai]}</b> subiu para a posição ${pai}. Verificando com o próximo pai...` });
-      pos = pai;
+function pushIniciar() {
+  const v = parseInt(document.getElementById('push-val').value);
+  if (isNaN(v)||v<1||v>99) return;
+  const h = [...pushLive]; pushSteps = [];
+  h.push(v); let pos = h.length-1;
+  pushLive = [...h];
+  let st0={}; st0[pos]='active';
+  pushSteps.push({heap:[...h],states:{...st0},msg:`<b>Inserção:</b> valor <b>${v}</b> colocado na posição <b>${pos}</b> (próxima folha, da esquerda para a direita).`});
+  while(pos>1){
+    const pai=Math.floor(pos/2);
+    if(h[pos]<h[pai]){
+      let sc={}; sc[pos]='active'; sc[pai]='swap';
+      pushSteps.push({heap:[...h],states:sc,msg:`<b>Comparação:</b> ${h[pos]} &lt; ${h[pai]} (pai, posição ${pai}) → troca necessária.`});
+      [h[pos],h[pai]]=[h[pai],h[pos]]; pushLive[pos]=h[pos]; pushLive[pai]=h[pai];
+      let sa={}; sa[pai]='active'; sa[pos]='swap';
+      pushSteps.push({heap:[...h],states:sa,msg:`<b>Troca feita:</b> <b>${h[pai]}</b> subiu para a posição ${pai}.`});
+      pos=pai;
     } else {
-      let stFim = {}; stFim[pos] = 'done';
-      steps.push({ heap: [...h], states: stFim,
-        msg: `<b class="ok">✓ Fim:</b> ${h[pos]} ≥ ${h[Math.floor(pos/2)]} (pai, posição ${Math.floor(pos/2)}) — propriedade do heap mantida.` });
-      si = 0; applyStep(steps[0]); return;
+      let sf={}; sf[pos]='done';
+      pushSteps.push({heap:[...h],states:sf,msg:`<b class="ok">✓ Fim:</b> ${h[pos]} ≥ ${h[Math.floor(pos/2)]} (pai) — heap mantido.`});
+      pushSi=0; pushApply(pushSteps[0]); return;
     }
-    if (pos === 1) {
-      let st = {}; st[1] = 'done';
-      steps.push({ heap: [...h], states: st,
-        msg: `<b class="ok">✓ Fim:</b> Elemento chegou à raiz (posição 1). Heap válido!` });
-    }
+    if(pos===1){let st={}; st[1]='done'; pushSteps.push({heap:[...h],states:st,msg:`<b class="ok">✓ Fim:</b> Chegou à raiz. Heap válido!`});}
   }
-  si = 0; applyStep(steps[0]);
+  pushSi=0; pushApply(pushSteps[0]);
+}
+function pushResetar() {
+  pushSteps=[]; pushSi=0; pushLive=[null,...BASE];
+  setInfo('push-info','Digite um valor e clique em <b>Inserir</b> para ver o Push passo a passo.');
+  document.getElementById('push-counter').textContent='';
+  updateNav('push-ant','push-prox',0,0);
+  renderTree('svg-push',pushLive,{}); renderArray('push-arr',pushLive,{});
+  updateStats(pushLive.length-1);
 }
 
-function proximo() { if (si < steps.length - 1) { si++; applyStep(steps[si]); } }
-function anterior() { if (si > 0) { si--; applyStep(steps[si]); } }
+// ─── POP PROBLEMÁTICO ─────────────────────────────
+let popBadSteps=[], popBadSi=0;
 
-function resetar() {
-  steps = []; si = 0;
-  liveHeap = [null, ...BASE];
-  setInfo('Digite um valor e clique em <b>Inserir</b> para ver o Push passo a passo.');
-  document.getElementById('step-counter').textContent = '';
-  updateNav();
-  drawTree(liveHeap, {});
-  drawArray(liveHeap, {});
+function popBadApply(s) {
+  setInfo('popbad-info', s.msg);
+  renderTree('svg-popbad', s.heap, s.states);
+  renderArray('popbad-arr', s.heap, s.states);
+  updateNav('popbad-ant','popbad-prox', popBadSi, popBadSteps.length);
+  setCounter('popbad-counter', popBadSi, popBadSteps.length);
+}
+function popBadProximo() { if(popBadSi<popBadSteps.length-1){popBadSi++;popBadApply(popBadSteps[popBadSi]);} }
+function popBadAnterior() { if(popBadSi>0){popBadSi--;popBadApply(popBadSteps[popBadSi]);} }
+
+function popBadIniciar() {
+  const h = [null,...BASE]; popBadSteps=[];
+
+  // Mostra estado inicial, raiz destacada
+  let s0={}; s0[1]='active';
+  popBadSteps.push({heap:[...h],states:{...s0},msg:`<b>Pop:</b> removemos o elemento mínimo — a raiz <b>${h[1]}</b>. Agora precisamos preencher a posição 1.`});
+
+  // Simula promoção recursiva: em cada posição vazia, promove o menor filho
+  let pos = 1;
+  h[1] = null;
+  let sr={}; sr[1]='remove';
+  popBadSteps.push({heap:[...h],states:{...sr},msg:`<b class="warn">⚠ Buraco criado</b> na posição 1. Vamos promover o menor dos filhos para cima.`});
+
+  while(true) {
+    const l = pos*2, r = pos*2+1;
+    const hasL = l < h.length && h[l] !== null && h[l] !== undefined;
+    const hasR = r < h.length && h[r] !== null && h[r] !== undefined;
+    if (!hasL && !hasR) break;
+
+    let menor;
+    if (hasL && hasR) menor = h[l] < h[r] ? l : r;
+    else if (hasL) menor = l;
+    else menor = r;
+
+    let sc={}; sc[pos]='remove'; sc[menor]='swap';
+    popBadSteps.push({heap:[...h],states:{...sc},msg:`<b>Promoção:</b> menor filho é <b>${h[menor]}</b> (posição ${menor}) → sobe para posição ${pos}.`});
+
+    h[pos] = h[menor];
+    h[menor] = null;
+
+    let sa={}; sa[pos]='swap'; sa[menor]='remove';
+    popBadSteps.push({heap:[...h],states:{...sa},msg:`<b class="warn">⚠ Buraco agora em ${menor}.</b> A árvore deixou de ser completa — há um "buraco" no meio do último nível.`});
+    pos = menor;
+  }
+
+  let sf={}; sf[pos]='remove';
+  popBadSteps.push({heap:[...h],states:{...sf},msg:`<b class="warn">⚠ Problema:</b> a árvore resultante <b>não é completa</b> — o buraco ficou no meio do penúltimo nível, quebrando o mapeamento em array.`});
+
+  popBadSi=0; popBadApply(popBadSteps[0]);
+}
+function popBadResetar() {
+  popBadSteps=[]; popBadSi=0;
+  setInfo('popbad-info','Clique em <b>Executar</b> para ver o problema do Pop por promoção de filhos.');
+  document.getElementById('popbad-counter').textContent='';
+  updateNav('popbad-ant','popbad-prox',0,0);
+  const h=[null,...BASE]; renderTree('svg-popbad',h,{}); renderArray('popbad-arr',h,{});
 }
 
-resetar();
+// ─── POP CORRETO ─────────────────────────────────
+let popOkSteps=[], popOkSi=0;
+
+function popOkApply(s) {
+  setInfo('popok-info', s.msg);
+  renderTree('svg-popok', s.heap, s.states);
+  renderArray('popok-arr', s.heap, s.states);
+  updateNav('popok-ant','popok-prox', popOkSi, popOkSteps.length);
+  setCounter('popok-counter', popOkSi, popOkSteps.length);
+}
+function popOkProximo() { if(popOkSi<popOkSteps.length-1){popOkSi++;popOkApply(popOkSteps[popOkSi]);} }
+function popOkAnterior() { if(popOkSi>0){popOkSi--;popOkApply(popOkSteps[popOkSi]);} }
+
+function popOkIniciar() {
+  const h = [null,...BASE]; popOkSteps=[];
+
+  // Passo 1: mostrar raiz
+  let s0={}; s0[1]='remove';
+  popOkSteps.push({heap:[...h],states:{...s0},msg:`<b>Pop:</b> removemos a raiz <b>${h[1]}</b> (elemento mínimo).`});
+
+  // Passo 2: copiar última folha para raiz
+  const last = h.length-1;
+  let s1={}; s1[1]='remove'; s1[last]='active';
+  popOkSteps.push({heap:[...h],states:{...s1},msg:`<b>Solução:</b> copiar a <b>folha mais à direita</b> (posição ${last}, valor <b>${h[last]}</b>) para a raiz. Isso preserva a completude!`});
+
+  h[1] = h[last];
+  h.pop();
+  let s2={}; s2[1]='active';
+  popOkSteps.push({heap:[...h],states:{...s2},msg:`<b>Cópia feita:</b> valor <b>${h[1]}</b> agora está na raiz. A árvore ainda é <b>completa</b>. Agora fazemos o sift-down.`});
+
+  // Sift-down
+  let pos = 1;
+  while(true) {
+    const l=pos*2, r=pos*2+1;
+    const hasL = l<h.length;
+    const hasR = r<h.length;
+    if (!hasL) break;
+
+    let menor = hasR && h[r]<h[l] ? r : l;
+    if (h[pos] <= h[menor]) {
+      let sf={}; sf[pos]='done';
+      popOkSteps.push({heap:[...h],states:{...sf},msg:`<b class="ok">✓ Fim:</b> ${h[pos]} ≤ menor filho ${h[menor]} — propriedade do heap restaurada.`});
+      break;
+    }
+
+    let sc={}; sc[pos]='active'; sc[menor]='swap';
+    popOkSteps.push({heap:[...h],states:{...sc},msg:`<b>Sift-down:</b> ${h[pos]} > menor filho ${h[menor]} (posição ${menor}) → desce.`});
+
+    [h[pos],h[menor]]=[h[menor],h[pos]];
+    let sa={}; sa[menor]='active'; sa[pos]='swap';
+    popOkSteps.push({heap:[...h],states:{...sa},msg:`<b>Troca feita:</b> <b>${h[menor]}</b> desceu para posição ${menor}. Continua verificando...`});
+    pos=menor;
+  }
+
+  popOkSi=0; popOkApply(popOkSteps[0]);
+}
+function popOkResetar() {
+  popOkSteps=[]; popOkSi=0;
+  setInfo('popok-info','Clique em <b>Executar</b> para ver o Pop correto com folha mais à direita.');
+  document.getElementById('popok-counter').textContent='';
+  updateNav('popok-ant','popok-prox',0,0);
+  const h=[null,...BASE]; renderTree('svg-popok',h,{}); renderArray('popok-arr',h,{});
+}
+
+// Init
+pushResetar(); popBadResetar(); popOkResetar();
 </script>
 </body>
 </html>
