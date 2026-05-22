@@ -214,14 +214,17 @@
 <script>
 const BASE = [12, 17, 25, 33, 36, 55, 88, 19, 31, 58, 15, 41, 42, 89, 32, 39, 53];
 let steps = [], si = 0;
+let liveHeap = [];
+
+const SVG_W = 600;
+const LEVEL_H = 65;
 
 function calcCoords(n) {
-  const SVG_W = 600;
   const maxLevel = Math.floor(Math.log2(n));
   const maxLeafCap = Math.pow(2, maxLevel);
   const SLOT = SVG_W / maxLeafCap;
   const R = Math.min(Math.floor(SLOT / 2) - 3, 20);
-  const LEVEL_H = Math.max(R * 2 + 22, 52);
+  const LH = Math.max(R * 2 + 22, 52);
   const coords = [null];
   for (let i = 1; i <= n; i++) {
     const level = Math.floor(Math.log2(i));
@@ -229,10 +232,10 @@ function calcCoords(n) {
     const capAtLevel = Math.pow(2, level);
     const slotAtLevel = SVG_W / capAtLevel;
     const x = slotAtLevel * posInLevel + slotAtLevel / 2;
-    const y = R + 8 + level * LEVEL_H;
+    const y = R + 8 + level * LH;
     coords.push({x, y});
   }
-  return { coords, svgH: R + 8 + maxLevel * LEVEL_H + R + 20, R };
+  return { coords, svgH: R + 8 + maxLevel * LH + R + 20, R };
 }
 
 function nodeStyle(state) {
@@ -246,7 +249,7 @@ function drawTree(heap, states) {
   const n = heap.length - 1;
   const { coords, svgH, R } = calcCoords(n);
   const svg = document.getElementById('svg-tree');
-  svg.setAttribute('viewBox', `0 0 600 ${svgH}`);
+  svg.setAttribute('viewBox', `0 0 ${SVG_W} ${svgH}`);
   let h = '';
 
   for (let i = 2; i <= n; i++) {
@@ -254,10 +257,8 @@ function drawTree(heap, states) {
     const cx = coords[i], cp = coords[p];
     const dx = cx.x - cp.x, dy = cx.y - cp.y;
     const dist = Math.sqrt(dx*dx + dy*dy);
-    const x1 = (cp.x + dx/dist*R).toFixed(1);
-    const y1 = (cp.y + dy/dist*R).toFixed(1);
-    const x2 = (cx.x - dx/dist*R).toFixed(1);
-    const y2 = (cx.y - dy/dist*R).toFixed(1);
+    const x1 = (cp.x + dx/dist*R).toFixed(1), y1 = (cp.y + dy/dist*R).toFixed(1);
+    const x2 = (cx.x - dx/dist*R).toFixed(1), y2 = (cx.y - dy/dist*R).toFixed(1);
     h += `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="rgba(255,255,255,0.18)" stroke-width="1"/>`;
   }
 
@@ -266,7 +267,7 @@ function drawTree(heap, states) {
     const c = nodeStyle(states[i] || '');
     h += `<circle cx="${x.toFixed(1)}" cy="${y}" r="${R}" fill="${c.fill}" stroke="${c.stroke}" stroke-width="1.5"/>`;
     h += `<text x="${x.toFixed(1)}" y="${y}" text-anchor="middle" dominant-baseline="central" font-size="13" font-weight="500" fill="${c.text}" font-family="JetBrains Mono,monospace">${heap[i]}</text>`;
-    h += `<text x="${x.toFixed(1)}" y="${y + R + 11}" text-anchor="middle" font-size="9" fill="rgba(255,255,255,0.22)" font-family="JetBrains Mono,monospace">${i}</text>`;
+    h += `<text x="${x.toFixed(1)}" y="${y+R+11}" text-anchor="middle" font-size="9" fill="rgba(255,255,255,0.22)" font-family="JetBrains Mono,monospace">${i}</text>`;
   }
 
   svg.innerHTML = h;
@@ -304,14 +305,17 @@ function applyStep(s) { setInfo(s.msg); drawTree(s.heap, s.states); drawArray(s.
 function iniciar() {
   const v = parseInt(document.getElementById('val').value);
   if (isNaN(v) || v < 1 || v > 99) return;
-  const h = [null, ...BASE];
+
+  const h = [...liveHeap];
   steps = [];
   h.push(v);
   let pos = h.length - 1;
 
+  liveHeap = [...h];
+
   let st0 = {}; st0[pos] = 'active';
   steps.push({ heap: [...h], states: {...st0},
-    msg: `<b>Passo 1 — inserção:</b> valor <b>${v}</b> colocado na posição <b>${pos}</b> (próxima folha disponível, da esquerda para a direita).` });
+    msg: `<b>Inserção:</b> valor <b>${v}</b> colocado na posição <b>${pos}</b> (próxima folha, da esquerda para a direita).` });
 
   while (pos > 1) {
     const pai = Math.floor(pos / 2);
@@ -320,6 +324,7 @@ function iniciar() {
       steps.push({ heap: [...h], states: stCmp,
         msg: `<b>Comparação:</b> ${h[pos]} &lt; ${h[pai]} (pai, posição ${pai}) → troca necessária. O elemento sobe.` });
       [h[pos], h[pai]] = [h[pai], h[pos]];
+      liveHeap[pos] = h[pos]; liveHeap[pai] = h[pai];
       let stAft = {}; stAft[pai] = 'active'; stAft[pos] = 'swap';
       steps.push({ heap: [...h], states: stAft,
         msg: `<b>Troca feita:</b> <b>${h[pai]}</b> subiu para a posição ${pai}. Verificando com o próximo pai...` });
@@ -344,12 +349,12 @@ function anterior() { if (si > 0) { si--; applyStep(steps[si]); } }
 
 function resetar() {
   steps = []; si = 0;
+  liveHeap = [null, ...BASE];
   setInfo('Digite um valor e clique em <b>Inserir</b> para ver o Push passo a passo.');
   document.getElementById('step-counter').textContent = '';
   updateNav();
-  const h = [null, ...BASE];
-  drawTree(h, {});
-  drawArray(h, {});
+  drawTree(liveHeap, {});
+  drawArray(liveHeap, {});
 }
 
 resetar();
